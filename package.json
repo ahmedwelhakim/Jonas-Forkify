@@ -1,0 +1,20 @@
+{
+  "name": "jonas-forkify",
+  "version": "1.0.0",
+  "description": " A JavaScript recipe search and storage app using tools such as Webpack, Babel and Fraction.js. This app was written in ES6.",
+  "default": "index.html",
+  "scripts": {
+    "start": "parcel index.html",
+    "build": "parcel build index.html --dist-dir ./dist"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ahmedwelhakim/jonas-forkify.git"
+  },
+  "author": "Ahmed Elhakim",
+  "license": "ISC",
+  "devDependencies": {
+    "@parcel/transformer-sass": "^2.7.0",
+    "parcel": "^2.7.0"
+  }
+}

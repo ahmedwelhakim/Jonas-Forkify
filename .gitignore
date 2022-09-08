@@ -1,2 +1,4 @@
 forkify*.png
 .prettierrc
+node_modules
+.parcel-cache

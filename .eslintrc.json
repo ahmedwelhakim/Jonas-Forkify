@@ -11,10 +11,17 @@
       "sourceType": "module"
    },
    "rules": {
+      "lines-between-class-members": ["error", "always", { "exceptAfterSingleLine": true }],
       "prettier/prettier": [
          "error",
          {
-            "tabWidth": 3
+            "singleQuote": true,
+            "tabWidth": 3,
+
+            "arrowParens": "avoid",
+            "printWidth": 100,
+            "semi": true,
+            "trailingComma": "es5"
          }
       ]
    }

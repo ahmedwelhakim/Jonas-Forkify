@@ -2,4 +2,6 @@ forkify*.png
 .prettierrc
 node_modules
 .parcel-cache
-./dist
+dist
+dist/index.e37f48ea.js.map
+dist/index.e37f48ea.js

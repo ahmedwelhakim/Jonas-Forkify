@@ -1,5 +1,6 @@
 // eslint-disable-next-line import/no-unresolved
 import { Fraction } from 'fractional';
+// eslint-disable-next-line import/no-unresolved
 import icons from 'url:../../img/icons.svg';
 import View from './view';
 
@@ -38,6 +39,16 @@ export class RecipeView extends View {
       });
    }
 
+   updateBookmark() {
+      const bookmarkEl = recipeContainer.querySelector('.btn--bookmark');
+      bookmarkEl
+         .querySelector('use')
+         .setAttribute(
+            'href',
+            `${icons}#icon-bookmark${this.#currentRecipe.isBookmarked ? '-fill' : ''}`
+         );
+   }
+
    async addServingHandler(increaseCallbackfn, decreaseCallbackfn) {
       super.addEventHandler(async e => {
          const target = e.target.closest('[class ^= btn]');
@@ -52,7 +63,9 @@ export class RecipeView extends View {
       super.addEventHandler(e => {
          const target = e.target.closest('[class ^= btn]');
          if (!target) return;
-         if (target.classList.contains('btn--bookmark')) callbackfn();
+         if (!target.classList.contains('btn--bookmark')) return;
+         callbackfn();
+         this.updateBookmark();
       });
    }
 

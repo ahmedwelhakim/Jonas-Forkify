@@ -29,12 +29,17 @@ class Recipe {
       }));
    }
 
-   setBookmark() {
+   #setBookmark() {
       this.#isBookmarked = true;
    }
 
-   removeBookmark() {
+   #removeBookmark() {
       this.#isBookmarked = false;
+   }
+
+   toggleBookmark() {
+      if (this.#isBookmarked) this.#removeBookmark();
+      else this.#setBookmark();
    }
 
    increaseServings() {

@@ -1,5 +1,4 @@
 import 'core-js/stable';
-import 'regenerator-runtime/runtime';
 import { getRecipe } from './model/recipeModel';
 import { searchRecipes } from './model/searchModel';
 import { RecipeView } from './view/recipeView';
@@ -15,7 +14,7 @@ recipeView.addServingHandler(
       }),
    () => recipe.then(res => res.decreaseServings())
 );
-recipeView.addBookmarkHandler(() => console.log('Bookmark'));
+recipeView.addBookmarkHandler(() => recipe.then(res => res.toggleBookmark()));
 const myClasses = document.querySelectorAll('.my-class');
 const dataIsShowingElements = [...myClasses.values()].filter(
    el => el.getAttribute('data-is-showing') === true

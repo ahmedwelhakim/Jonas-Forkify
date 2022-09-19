@@ -1,22 +1,42 @@
 import 'core-js/stable';
-import { getRecipe } from './model/recipeModel';
-import { searchRecipes } from './model/searchModel';
-import { RecipeView } from './view/recipeView';
 
-const recipe = getRecipe('5ed6604591c37cdc054bc886');
-const recipeView = new RecipeView();
-recipeView.render(recipe);
-searchRecipes('pizza');
+import { getRecipe } from './model/recipeModel';
+import searchRecipes from './model/searchModel';
+import state from './model/state';
+import recipeView from './view/recipeView';
+import resultsView from './view/resultsView';
+import searchView from './view/searchView';
+
+async function init() {
+   const { hash } = window.location;
+   await getRecipe(hash.slice(1));
+   recipeView.render();
+}
 recipeView.addServingHandler(
-   () =>
-      recipe.then(res => {
-         res.increaseServings();
-      }),
-   () => recipe.then(res => res.decreaseServings())
+   () => state.recipe.increaseServings(),
+   () => state.recipe.decreaseServings()
 );
-recipeView.addBookmarkHandler(() => recipe.then(res => res.toggleBookmark()));
-const myClasses = document.querySelectorAll('.my-class');
-const dataIsShowingElements = [...myClasses.values()].filter(
-   el => el.getAttribute('data-is-showing') === true
-);
-if (dataIsShowingElements.length > 0) dataIsShowingElements.at(-1).classList.add('last-of-type');
+recipeView.addBookmarkHandler(() => state.recipe.toggleBookmark());
+searchView.addSearchHandler(async () => {
+   await searchRecipes(searchView.getQuery());
+   resultsView.renderResults();
+});
+window.addEventListener('hashchange', async () => {
+   const { hash } = window.location;
+   resultsView.renderResults();
+   await getRecipe(hash.slice(1));
+   recipeView.render();
+});
+init();
+// recipeView.render(recipe);
+// searchRecipes('pizza');
+// recipeView.addServingHandler(
+//    () =>
+//       recipe.then(res => {
+//          res.increaseServings();
+//       }),
+//    () => recipe.then(res => res.decreaseServings())
+// );
+// recipeView.addBookmarkHandler(() => recipe.then(res => res.toggleBookmark()));
+// console.log(searchRecipes('pizza'));
+// console.log(getRecipe('5ed6604591c37cdc054bcd09'));

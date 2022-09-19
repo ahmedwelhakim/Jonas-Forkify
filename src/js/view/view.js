@@ -7,6 +7,10 @@ export default class View {
       this.#parentEl = parentEl;
    }
 
+   get parentEl() {
+      return this.#parentEl;
+   }
+
    #clear() {
       this.#parentEl.innerHTML = '';
    }
@@ -22,13 +26,41 @@ export default class View {
       this.#parentEl.insertAdjacentHTML('afterbegin', html);
    }
 
+   renderError(message) {
+      const markup = `
+      <div class="error">
+        <div>
+          <svg>
+            <use href="${icons}#icon-alert-triangle"></use>
+          </svg>
+        </div>
+        <p>${message}</p>
+      </div>
+    `;
+      this.renderMarkup(markup);
+   }
+
+   renderMessage(message) {
+      const markup = `
+      <div class="message">
+        <div>
+          <svg>
+            <use href="${icons}#icon-smile"></use>
+          </svg>
+        </div>
+        <p>${message}</p>
+      </div>
+    `;
+      this.renderMarkup(markup);
+   }
+
    renderMarkup(markup) {
       this.#clear();
       this.#parentEl.insertAdjacentHTML('afterbegin', markup);
    }
 
-   addEventHandler(callbackfn) {
-      this.#parentEl.addEventListener('click', e => {
+   addEventHandler(type, callbackfn) {
+      this.#parentEl.addEventListener(type, e => {
          e.preventDefault();
          callbackfn(e);
       });

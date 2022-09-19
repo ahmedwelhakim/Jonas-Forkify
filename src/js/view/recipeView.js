@@ -2,24 +2,22 @@
 import { Fraction } from 'fractional';
 // eslint-disable-next-line import/no-unresolved
 import icons from 'url:../../img/icons.svg';
+import state from '../model/state';
 import View from './view';
 
 const recipeContainer = document.querySelector('.recipe');
-export class RecipeView extends View {
+class RecipeView extends View {
    #recipeDetailsEl;
    #recipeIngredientsEl;
-   #currentRecipe;
    constructor() {
       super(recipeContainer);
-      this.#currentRecipe = null;
    }
 
-   async render(recipe) {
+   render() {
       try {
          this.renderSpinner();
-         const res = await recipe;
-         const html = RecipeView.#generateRecipeMarkup(res);
-         this.#currentRecipe = res;
+         const html = RecipeView.#generateRecipeMarkup(state.recipe);
+
          super.renderMarkup(html);
          this.#recipeDetailsEl = document.querySelector('.recipe__details');
          this.#recipeIngredientsEl = document.querySelector('.recipe__ingredients');
@@ -29,28 +27,25 @@ export class RecipeView extends View {
    }
 
    updateServings() {
-      if (!this.#currentRecipe) return;
+      if (!state.recipe) return;
       this.#recipeDetailsEl.querySelector(
          '.recipe__info-data.recipe__info-data--people'
-      ).innerText = this.#currentRecipe.servings;
+      ).innerText = state.recipe.servings;
       this.#recipeIngredientsEl.querySelectorAll('.recipe__quantity').forEach((recEl, i) => {
          // eslint-disable-next-line no-param-reassign
-         recEl.innerText = new Fraction(this.#currentRecipe.ingredients[i].quantity).toString();
+         recEl.innerText = new Fraction(state.recipe.ingredients[i].quantity).toString();
       });
    }
 
-   updateBookmark() {
+   static updateBookmark() {
       const bookmarkEl = recipeContainer.querySelector('.btn--bookmark');
       bookmarkEl
          .querySelector('use')
-         .setAttribute(
-            'href',
-            `${icons}#icon-bookmark${this.#currentRecipe.isBookmarked ? '-fill' : ''}`
-         );
+         .setAttribute('href', `${icons}#icon-bookmark${state.recipe.isBookmarked ? '-fill' : ''}`);
    }
 
    async addServingHandler(increaseCallbackfn, decreaseCallbackfn) {
-      super.addEventHandler(async e => {
+      super.addEventHandler('click', async e => {
          const target = e.target.closest('[class ^= btn]');
          if (!target) return;
          if (target.classList.contains('btn--increase-servings')) await increaseCallbackfn();
@@ -60,12 +55,12 @@ export class RecipeView extends View {
    }
 
    addBookmarkHandler(callbackfn) {
-      super.addEventHandler(e => {
+      super.addEventHandler('click', e => {
          const target = e.target.closest('[class ^= btn]');
          if (!target) return;
          if (!target.classList.contains('btn--bookmark')) return;
          callbackfn();
-         this.updateBookmark();
+         RecipeView.updateBookmark();
       });
    }
 
@@ -197,4 +192,4 @@ export class RecipeView extends View {
       recipeContainer.insertAdjacentHTML('afterbegin', html);
    }
 }
-export default { RecipeView };
+export default new RecipeView();

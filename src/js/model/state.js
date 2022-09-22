@@ -6,6 +6,7 @@ class State {
    #results = [];
    #bookmarked = [];
    #page = 1;
+   #maxPages;
    #resultsPerPage = RESULTS_PER_PAGE;
    /**
     * @param {Recipe} recipe
@@ -34,12 +35,16 @@ class State {
     */
    set results(results) {
       this.#results = [...results];
+      this.#maxPages = Math.ceil(this.#results.length / this.#resultsPerPage);
    }
 
    get results() {
       return this.#results.slice(0);
    }
 
+   get maxPage() {
+      return this.#maxPages;
+   }
    /**
     * @param {Recipe[]} bookmarked
     */

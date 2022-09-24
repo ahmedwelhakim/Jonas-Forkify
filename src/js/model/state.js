@@ -6,7 +6,7 @@ class State {
    #results = [];
    #bookmarked = [];
    #page = 1;
-   #maxPages;
+   #maxPages = 0;
    #resultsPerPage = RESULTS_PER_PAGE;
    /**
     * @param {Recipe} recipe

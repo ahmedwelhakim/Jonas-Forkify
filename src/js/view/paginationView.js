@@ -15,6 +15,7 @@ class PaginationView extends View {
    }
 
    static #createMarkup() {
+      if (state.maxPage === 0) return '';
       let markup = '';
       if (state.page !== 1 && state.page !== state.maxPage)
          markup = `

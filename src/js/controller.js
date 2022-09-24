@@ -3,7 +3,9 @@ import 'core-js/stable';
 import { getRecipe } from './model/recipeModel';
 import searchRecipes from './model/searchModel';
 import state from './model/state';
+import bookmarkView from './view/bookmarkView';
 import paginationView from './view/paginationView';
+import previewView from './view/previewView';
 import recipeView from './view/recipeView';
 import resultsView from './view/resultsView';
 import searchView from './view/searchView';
@@ -27,6 +29,7 @@ searchView.addSearchHandler(async () => {
    try {
       await searchRecipes(searchView.getQuery());
       resultsView.renderResults();
+      paginationView.renderPagination();
    } catch (err) {
       resultsView.renderError(err.message);
    }
@@ -45,4 +48,9 @@ paginationView.addNextPageHandler(() => {
 paginationView.addPrevPageHandler(() => {
    state.page -= 1;
    resultsView.renderResults();
+});
+
+previewView.renderPreview();
+bookmarkView.addBookmarkHandler(() => {
+   previewView.renderPreview();
 });

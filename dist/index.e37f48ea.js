@@ -539,8 +539,12 @@ var _searchModel = require("./model/searchModel");
 var _searchModelDefault = parcelHelpers.interopDefault(_searchModel);
 var _state = require("./model/state");
 var _stateDefault = parcelHelpers.interopDefault(_state);
+var _bookmarkView = require("./view/bookmarkView");
+var _bookmarkViewDefault = parcelHelpers.interopDefault(_bookmarkView);
 var _paginationView = require("./view/paginationView");
 var _paginationViewDefault = parcelHelpers.interopDefault(_paginationView);
+var _previewView = require("./view/previewView");
+var _previewViewDefault = parcelHelpers.interopDefault(_previewView);
 var _recipeView = require("./view/recipeView");
 var _recipeViewDefault = parcelHelpers.interopDefault(_recipeView);
 var _resultsView = require("./view/resultsView");
@@ -562,6 +566,7 @@ async function renderRecipeFromHash() {
     try {
         await (0, _searchModelDefault.default)((0, _searchViewDefault.default).getQuery());
         (0, _resultsViewDefault.default).renderResults();
+        (0, _paginationViewDefault.default).renderPagination();
     } catch (err) {
         (0, _resultsViewDefault.default).renderError(err.message);
     }
@@ -581,8 +586,12 @@ renderRecipeFromHash();
     (0, _stateDefault.default).page -= 1;
     (0, _resultsViewDefault.default).renderResults();
 });
+(0, _previewViewDefault.default).renderPreview();
+(0, _bookmarkViewDefault.default).addBookmarkHandler(()=>{
+    (0, _previewViewDefault.default).renderPreview();
+});
 
-},{"core-js/modules/web.immediate.js":"49tUX","./model/recipeModel":"2p37Q","./model/searchModel":"8QdUP","./view/recipeView":"7Olh7","./model/state":"5IWav","./view/resultsView":"46Nfk","./view/searchView":"blwqv","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3","./view/paginationView":"9Reww"}],"49tUX":[function(require,module,exports) {
+},{"core-js/modules/web.immediate.js":"49tUX","./model/recipeModel":"2p37Q","./model/searchModel":"8QdUP","./view/recipeView":"7Olh7","./model/state":"5IWav","./view/resultsView":"46Nfk","./view/searchView":"blwqv","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3","./view/paginationView":"9Reww","./view/bookmarkView":"pQnVj","./view/previewView":"8eAfY"}],"49tUX":[function(require,module,exports) {
 // TODO: Remove this module from `core-js@4` since it's split to modules listed below
 require("../modules/web.clear-immediate");
 require("../modules/web.set-immediate");
@@ -1871,7 +1880,7 @@ class State {
     #results = [];
     #bookmarked = [];
     #page = 1;
-    #maxPages;
+    #maxPages = 0;
     #resultsPerPage = (0, _config.RESULTS_PER_PAGE);
     /**
     * @param {Recipe} recipe
@@ -2581,6 +2590,7 @@ class PaginationView extends (0, _viewDefault.default) {
         super.renderMarkup(PaginationView.#createMarkup());
     }
     static  #createMarkup() {
+        if ((0, _stateDefault.default).maxPage === 0) return "";
         let markup = "";
         if ((0, _stateDefault.default).page !== 1 && (0, _stateDefault.default).page !== (0, _stateDefault.default).maxPage) markup = `
 			<button class="btn--inline pagination__btn--prev">
@@ -2631,6 +2641,81 @@ class PaginationView extends (0, _viewDefault.default) {
     }
 }
 exports.default = new PaginationView();
+
+},{"url:../../img/icons.svg":"loVOp","../model/state":"5IWav","./view":"4wVyX","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"pQnVj":[function(require,module,exports) {
+var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
+parcelHelpers.defineInteropFlag(exports);
+// eslint-disable-next-line import/no-unresolved
+var _view = require("./view");
+var _viewDefault = parcelHelpers.interopDefault(_view);
+const parentEl = document.querySelector(".nav__btn--bookmarks");
+class BookmarkView extends (0, _viewDefault.default) {
+    constructor(){
+        super(parentEl);
+    }
+    renderError() {
+        super.renderError("No bookmarks yet. Find a nice recipe and bookmark it ;)");
+    }
+    addBookmarkHandler(callbackfn) {
+        super.addEventHandler("mouseover", (e)=>{
+            if (e.target.closest(".nav__btn--bookmarks")) callbackfn();
+        });
+        super.addEventHandler("click", (e)=>{
+            if (e.target.closest(".nav__btn--bookmarks")) callbackfn();
+        });
+    }
+}
+exports.default = new BookmarkView();
+
+},{"./view":"4wVyX","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"8eAfY":[function(require,module,exports) {
+var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
+parcelHelpers.defineInteropFlag(exports);
+// eslint-disable-next-line import/no-unresolved
+var _iconsSvg = require("url:../../img/icons.svg");
+var _iconsSvgDefault = parcelHelpers.interopDefault(_iconsSvg);
+var _state = require("../model/state");
+var _stateDefault = parcelHelpers.interopDefault(_state);
+var _view = require("./view");
+var _viewDefault = parcelHelpers.interopDefault(_view);
+const parentEl = document.querySelector(".bookmarks__list");
+class PreviewView extends (0, _viewDefault.default) {
+    constructor(){
+        super(parentEl);
+    }
+    renderPreview() {
+        super.renderMarkup((0, _stateDefault.default).bookmarked.length === 0 ? PreviewView.#defaultMarkup() : PreviewView.#createMarkup());
+    }
+    static  #defaultMarkup() {
+        return `	<div class="message">
+                  <div>
+                    <svg>
+                      <use href="${0, _iconsSvgDefault.default}#icon-smile"></use>
+                    </svg>
+                  </div>
+                  <p>
+                    No bookmarks yet. Find a nice recipe and bookmark it :)
+                  </p>
+               </div> `;
+    }
+    static  #createMarkup() {
+        return (0, _stateDefault.default).bookmarked.map((rec)=>`
+					<li class="preview">
+						<a class="preview__link" href="#${rec.id}">
+							<figure class="preview__fig">
+								<img src="${rec.image}" alt="${rec.title}" />
+							</figure>
+							<div class="preview__data">
+								<h4 class="preview__name">
+								${rec.title}
+								</h4>
+								<p class="preview__publisher">${rec.publisher}</p>
+							</div>
+						</a>
+					</li> 
+					`).join("");
+    }
+}
+exports.default = new PreviewView();
 
 },{"url:../../img/icons.svg":"loVOp","../model/state":"5IWav","./view":"4wVyX","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}]},["fA0o9","aenu9"], "aenu9", "parcelRequire76cb")
 

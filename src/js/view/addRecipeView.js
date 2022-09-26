@@ -2,48 +2,30 @@
 import View from './view';
 
 const parentEl = document.querySelector('.upload');
+const window = document.querySelector('.add-recipe-window');
+const overlay = document.querySelector('.overlay');
+const btnOpen = document.querySelector('.nav__btn--add-recipe');
+const btnClose = document.querySelector('.btn--close-modal');
+
 class AddRecipeView extends View {
    constructor() {
       super(parentEl);
+      btnClose.addEventListener('click', AddRecipeView.#toggleWindow);
+      overlay.addEventListener('click', AddRecipeView.#toggleWindow);
+      btnOpen.addEventListener('click', AddRecipeView.#toggleWindow);
    }
 
-   window = document.querySelector('.add-recipe-window');
-   overlay = document.querySelector('.overlay');
-   btnOpen = document.querySelector('.nav__btn--add-recipe');
-   btnClose = document.querySelector('.btn--close-modal');
-
-   renderError() {
-      super.renderError('No bookmarks yet. Find a nice recipe and bookmark it ;)');
+   static #toggleWindow() {
+      overlay.classList.toggle('hidden');
+      window.classList.toggle('hidden');
    }
 
-   addBookmarkHandler(callbackfn) {
-      super.addEventHandler('mouseover', e => {
-         if (e.target.closest('.nav__btn--bookmarks')) {
-            callbackfn();
-         }
-      });
-      super.addEventHandler('click', e => {
-         if (e.target.closest('.nav__btn--bookmarks')) {
-            callbackfn();
-         }
+   addUploadHandler(callbackfn) {
+      super.addEventHandler('submit', () => {
+         const dataEntries = [...new FormData(this)];
+         callbackfn(Object.fromEntries(dataEntries));
       });
    }
-
-   toggleWindow() {
-      this.overlay.classList.toggle('hidden');
-      this.window.classList.toggle('hidden');
-   }
-
-   addShowWindowHandler() {
-      this.btnOpen.addEventListener('click', this.toggleWindow.bind(this));
-   }
-
-   addHideWindowHandler() {
-      this.btnClose.addEventListener('click', this.toggleWindow.bind(this));
-      this.overlay.addEventListener('click', this.toggleWindow.bind(this));
-   }
-
-
 }
 
 export default new AddRecipeView();

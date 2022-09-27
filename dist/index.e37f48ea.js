@@ -539,6 +539,8 @@ var _searchModel = require("./model/searchModel");
 var _searchModelDefault = parcelHelpers.interopDefault(_searchModel);
 var _state = require("./model/state");
 var _stateDefault = parcelHelpers.interopDefault(_state);
+var _stateUpdater = require("./model/stateUpdater");
+var _stateUpdaterDefault = parcelHelpers.interopDefault(_stateUpdater);
 var _bookmarkView = require("./view/bookmarkView");
 var _bookmarkViewDefault = parcelHelpers.interopDefault(_bookmarkView);
 var _paginationView = require("./view/paginationView");
@@ -560,6 +562,7 @@ async function renderRecipeFromHash() {
         (0, _recipeViewDefault.default).renderError(err.message);
     }
 }
+//updateStateFromLocal();
 (0, _recipeViewDefault.default).addServingHandler(()=>(0, _stateDefault.default).recipe.increaseServings(), ()=>(0, _stateDefault.default).recipe.decreaseServings());
 (0, _recipeViewDefault.default).addBookmarkHandler(()=>(0, _stateDefault.default).recipe.toggleBookmark());
 (0, _searchViewDefault.default).addSearchHandler(async ()=>{
@@ -573,6 +576,7 @@ async function renderRecipeFromHash() {
 });
 window.addEventListener("hashchange", async ()=>{
     // to update the selected recipe in recipe result
+    console.log((0, _stateDefault.default));
     (0, _resultsViewDefault.default).renderResults();
     renderRecipeFromHash();
 });
@@ -591,7 +595,7 @@ renderRecipeFromHash();
     (0, _previewViewDefault.default).renderPreview();
 });
 
-},{"core-js/modules/web.immediate.js":"49tUX","./model/recipeModel":"2p37Q","./model/searchModel":"8QdUP","./view/recipeView":"7Olh7","./model/state":"5IWav","./view/resultsView":"46Nfk","./view/searchView":"blwqv","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3","./view/paginationView":"9Reww","./view/bookmarkView":"pQnVj","./view/previewView":"8eAfY"}],"49tUX":[function(require,module,exports) {
+},{"core-js/modules/web.immediate.js":"49tUX","./model/recipeModel":"2p37Q","./model/searchModel":"8QdUP","./view/recipeView":"7Olh7","./model/state":"5IWav","./view/resultsView":"46Nfk","./view/searchView":"blwqv","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3","./view/paginationView":"9Reww","./view/bookmarkView":"pQnVj","./view/previewView":"8eAfY","./model/stateUpdater":"2wc0P"}],"49tUX":[function(require,module,exports) {
 // TODO: Remove this module from `core-js@4` since it's split to modules listed below
 require("../modules/web.clear-immediate");
 require("../modules/web.set-immediate");
@@ -1744,7 +1748,7 @@ class Recipe {
         this.#ingredients = ingredients;
         this.#isFull = true;
     }
-     #setBookmark() {
+    setBookmark() {
         this.#isBookmarked = true;
         (0, _stateDefault.default).addTobookmarked(this);
     }
@@ -1754,7 +1758,7 @@ class Recipe {
     }
     toggleBookmark() {
         if (this.#isBookmarked) this.#removeBookmark();
-        else this.#setBookmark();
+        else this.setBookmark();
     }
     increaseServings() {
         this.#ingredients = this.#ingredients.map((v)=>({
@@ -1809,10 +1813,19 @@ function createRecipeObject(dataJSON) {
     return new Recipe(id, imageUrl, publisher, title, soureUrl, servings, cookingTime, ingredients);
 }
 async function getRecipe(id) {
+    if ((0, _stateDefault.default).recipe?.id === id) return (0, _stateDefault.default).recipe;
     const url = `${(0, _config.API_URL)}/${id}`;
     const res = await (0, _helper.fetchDataAsJSON)(url);
-    const recipe = createRecipeObject(res.data.recipe);
-    (0, _stateDefault.default).recipe = recipe;
+    if ((0, _stateDefault.default).results.map((r)=>r.id).includes(id)) {
+        const index = (0, _stateDefault.default).results.map((r)=>r.id).indexOf(id);
+        const recipe = (0, _stateDefault.default).results[index];
+        recipe.setFullRecipe(res.data.recipe.source_url, res.data.recipe.servings, res.data.recipe.cooking_time, res.data.recipe.ingredients);
+        (0, _stateDefault.default).recipe = recipe;
+        return (0, _stateDefault.default).recipe;
+    }
+    const recipe1 = createRecipeObject(res.data.recipe);
+    if ((0, _stateDefault.default).bookmarked.map((rec)=>rec.id).includes(id)) recipe1.setBookmark();
+    (0, _stateDefault.default).recipe = recipe1;
     return (0, _stateDefault.default).recipe;
 }
 
@@ -1914,11 +1927,13 @@ class State {
     }
     /**
     * @param {Recipe[]} bookmarked
-    */ addTobookmarked(rec) {
-        this.#bookmarked.push(rec);
+    */ addTobookmarked(...rec) {
+        this.#bookmarked.push(...rec);
+        this.#saveToLocal();
     }
     removeFromBookmarked(rec) {
         this.#bookmarked = this.#bookmarked.filter((b)=>b !== rec);
+        this.#saveToLocal();
     }
     get bookmarked() {
         return this.#bookmarked.slice(0);
@@ -1931,6 +1946,12 @@ class State {
     }
     get resultsPerPage() {
         return this.#resultsPerPage;
+    }
+     #saveToLocal() {
+        if (this.bookmarked.length > 0) localStorage.setItem("recipes", JSON.stringify({
+            bookmarks: this.bookmarked.map((v)=>v.id),
+            query: this.query
+        }));
     }
 }
 exports.default = new State();
@@ -2717,6 +2738,21 @@ class PreviewView extends (0, _viewDefault.default) {
 }
 exports.default = new PreviewView();
 
-},{"url:../../img/icons.svg":"loVOp","../model/state":"5IWav","./view":"4wVyX","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}]},["fA0o9","aenu9"], "aenu9", "parcelRequire76cb")
+},{"url:../../img/icons.svg":"loVOp","../model/state":"5IWav","./view":"4wVyX","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"2wc0P":[function(require,module,exports) {
+var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
+parcelHelpers.defineInteropFlag(exports);
+var _recipeModel = require("./recipeModel");
+var _state = require("./state");
+var _stateDefault = parcelHelpers.interopDefault(_state);
+async function updateStateFromLocal() {
+    const storage = localStorage.getItem("recipes");
+    if (!storage) return;
+    const obj = JSON.parse(storage);
+    await Promise.all(obj.bookmarks.map((id)=>(0, _stateDefault.default).addTobookmarked((0, _recipeModel.getRecipe)(id))));
+    (0, _stateDefault.default).query = obj.query;
+}
+exports.default = updateStateFromLocal;
+
+},{"./recipeModel":"2p37Q","./state":"5IWav","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}]},["fA0o9","aenu9"], "aenu9", "parcelRequire76cb")
 
 //# sourceMappingURL=index.e37f48ea.js.map

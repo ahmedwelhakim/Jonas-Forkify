@@ -3,6 +3,7 @@ import 'core-js/stable';
 import { getRecipe } from './model/recipeModel';
 import searchRecipes from './model/searchModel';
 import state from './model/state';
+import updateStateFromLocal from './model/stateUpdater';
 import bookmarkView from './view/bookmarkView';
 import paginationView from './view/paginationView';
 import previewView from './view/previewView';
@@ -19,7 +20,7 @@ async function renderRecipeFromHash() {
       recipeView.renderError(err.message);
    }
 }
-
+//updateStateFromLocal();
 recipeView.addServingHandler(
    () => state.recipe.increaseServings(),
    () => state.recipe.decreaseServings()
@@ -36,6 +37,7 @@ searchView.addSearchHandler(async () => {
 });
 window.addEventListener('hashchange', async () => {
    // to update the selected recipe in recipe result
+   console.log(state);
    resultsView.renderResults();
    renderRecipeFromHash();
 });

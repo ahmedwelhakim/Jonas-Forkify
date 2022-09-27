@@ -40,7 +40,7 @@ export class Recipe {
       this.#isFull = true;
    }
 
-   #setBookmark() {
+   setBookmark() {
       this.#isBookmarked = true;
       state.addTobookmarked(this);
    }
@@ -52,7 +52,7 @@ export class Recipe {
 
    toggleBookmark() {
       if (this.#isBookmarked) this.#removeBookmark();
-      else this.#setBookmark();
+      else this.setBookmark();
    }
 
    increaseServings() {
@@ -128,9 +128,23 @@ export function createRecipeObject(dataJSON) {
    return new Recipe(id, imageUrl, publisher, title, soureUrl, servings, cookingTime, ingredients);
 }
 export async function getRecipe(id) {
+   if (state.recipe?.id === id) return state.recipe;
    const url = `${API_URL}/${id}`;
    const res = await fetchDataAsJSON(url);
+   if (state.results.map(r => r.id).includes(id)) {
+      const index = state.results.map(r => r.id).indexOf(id);
+      const recipe = state.results[index];
+      recipe.setFullRecipe(
+         res.data.recipe.source_url,
+         res.data.recipe.servings,
+         res.data.recipe.cooking_time,
+         res.data.recipe.ingredients
+      );
+      state.recipe = recipe;
+      return state.recipe;
+   }
    const recipe = createRecipeObject(res.data.recipe);
+   if (state.bookmarked.map(rec => rec.id).includes(id)) recipe.setBookmark();
    state.recipe = recipe;
    return state.recipe;
 }

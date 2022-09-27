@@ -49,12 +49,14 @@ class State {
     * @param {Recipe[]} bookmarked
     */
 
-   addTobookmarked(rec) {
-      this.#bookmarked.push(rec);
+   addTobookmarked(...rec) {
+      this.#bookmarked.push(...rec);
+      this.#saveToLocal();
    }
 
    removeFromBookmarked(rec) {
       this.#bookmarked = this.#bookmarked.filter(b => b !== rec);
+      this.#saveToLocal();
    }
 
    get bookmarked() {
@@ -71,6 +73,14 @@ class State {
 
    get resultsPerPage() {
       return this.#resultsPerPage;
+   }
+
+   #saveToLocal() {
+      if (this.bookmarked.length > 0)
+         localStorage.setItem(
+            'recipes',
+            JSON.stringify({ bookmarks: this.bookmarked.map(v => v.id), query: this.query })
+         );
    }
 }
 export default new State();

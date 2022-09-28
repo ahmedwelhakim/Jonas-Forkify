@@ -141,6 +141,7 @@ export async function getRecipe(id) {
          res.data.recipe.ingredients
       );
       state.recipe = recipe;
+      if (state.bookmarked.map(rec => rec.id).includes(id)) recipe.setBookmark();
       return state.recipe;
    }
    const recipe = createRecipeObject(res.data.recipe);

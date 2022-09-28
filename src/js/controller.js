@@ -20,27 +20,35 @@ async function renderRecipeFromHash() {
       recipeView.renderError(err.message);
    }
 }
-updateStateFromLocal();
+async function searchRenderRecipesResults() {
+   try {
+      const query = searchView.getQuery();
+      await searchRecipes(query === '' ? state.query : query);
+      resultsView.renderResults();
+      paginationView.renderPagination();
+   } catch (err) {
+      resultsView.renderError(err.message);
+   }
+}
+async function init() {
+   await updateStateFromLocal();
+   renderRecipeFromHash();
+   searchRenderRecipesResults();
+}
 recipeView.addServingHandler(
    () => state.recipe.increaseServings(),
    () => state.recipe.decreaseServings()
 );
 recipeView.addBookmarkHandler(() => state.recipe.toggleBookmark());
 searchView.addSearchHandler(async () => {
-   try {
-      await searchRecipes(searchView.getQuery());
-      resultsView.renderResults();
-      paginationView.renderPagination();
-   } catch (err) {
-      resultsView.renderError(err.message);
-   }
+   await searchRenderRecipesResults();
 });
 window.addEventListener('hashchange', async () => {
    // to update the selected recipe in recipe result
    resultsView.renderResults();
    renderRecipeFromHash();
 });
-renderRecipeFromHash();
+init();
 paginationView.renderPagination();
 paginationView.addNextPageHandler(() => {
    state.page += 1;
@@ -54,5 +62,4 @@ paginationView.addPrevPageHandler(() => {
 previewView.renderPreview();
 bookmarkView.addBookmarkHandler(() => {
    previewView.renderPreview();
-   console.log(state);
 });

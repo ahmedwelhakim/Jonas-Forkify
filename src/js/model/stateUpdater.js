@@ -7,5 +7,6 @@ export default async function updateStateFromLocal() {
    const obj = JSON.parse(storage);
    if (!obj?.bookmarks) return;
    await Promise.all(obj.bookmarks.map(async id => state.addTobookmarked(await getRecipe(id))));
+   state.bookmarked.forEach(rec => rec.setBookmark());
    state.query = obj.query;
 }

@@ -24,6 +24,7 @@ class State {
     */
    set query(query) {
       this.#query = query;
+      this.#saveToLocal();
    }
 
    get query() {
@@ -50,15 +51,14 @@ class State {
     */
 
    addTobookmarked(...rec) {
-      console.log(rec[0]);
       if (!rec[0]) return;
       this.#bookmarked.push(...rec);
       this.#saveToLocal();
    }
 
    removeFromBookmarked(rec) {
-      this.#bookmarked = this.#bookmarked.filter(b => b !== rec);
-      this.#saveToLocal();
+      this.#bookmarked = this.#bookmarked.filter(b => b.id !== rec.id);
+      this.#saveToLocal(rec);
    }
 
    get bookmarked() {
@@ -77,16 +77,16 @@ class State {
       return this.#resultsPerPage;
    }
 
-   #saveToLocal() {
+   #saveToLocal(del) {
       const obj = JSON.parse(localStorage.getItem('recipes'));
-      console.log(obj);
+      const idSet = new Set();
+      if (obj?.bookmarks) obj.bookmarks.forEach(id => idSet.add(id));
+      this.#bookmarked.forEach(rec => idSet.add(rec.id));
       localStorage.setItem(
          'recipes',
          JSON.stringify({
-            bookmarks: this.bookmarked
-               .filter(rec => !obj?.bookmarks.includes(rec.id))
-               .map(v => v.id),
-            query: this.query,
+            bookmarks: [...idSet.values()].filter(id => id !== del?.id),
+            query: this.query ? this.query : obj.query,
          })
       );
    }

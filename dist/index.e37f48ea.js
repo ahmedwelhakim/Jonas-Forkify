@@ -562,24 +562,32 @@ async function renderRecipeFromHash() {
         (0, _recipeViewDefault.default).renderError(err.message);
     }
 }
-(0, _stateUpdaterDefault.default)();
-(0, _recipeViewDefault.default).addServingHandler(()=>(0, _stateDefault.default).recipe.increaseServings(), ()=>(0, _stateDefault.default).recipe.decreaseServings());
-(0, _recipeViewDefault.default).addBookmarkHandler(()=>(0, _stateDefault.default).recipe.toggleBookmark());
-(0, _searchViewDefault.default).addSearchHandler(async ()=>{
+async function searchRenderRecipesResults() {
     try {
-        await (0, _searchModelDefault.default)((0, _searchViewDefault.default).getQuery());
+        const query = (0, _searchViewDefault.default).getQuery();
+        await (0, _searchModelDefault.default)(query === "" ? (0, _stateDefault.default).query : query);
         (0, _resultsViewDefault.default).renderResults();
         (0, _paginationViewDefault.default).renderPagination();
     } catch (err) {
         (0, _resultsViewDefault.default).renderError(err.message);
     }
+}
+async function init() {
+    await (0, _stateUpdaterDefault.default)();
+    renderRecipeFromHash();
+    searchRenderRecipesResults();
+}
+(0, _recipeViewDefault.default).addServingHandler(()=>(0, _stateDefault.default).recipe.increaseServings(), ()=>(0, _stateDefault.default).recipe.decreaseServings());
+(0, _recipeViewDefault.default).addBookmarkHandler(()=>(0, _stateDefault.default).recipe.toggleBookmark());
+(0, _searchViewDefault.default).addSearchHandler(async ()=>{
+    await searchRenderRecipesResults();
 });
 window.addEventListener("hashchange", async ()=>{
     // to update the selected recipe in recipe result
     (0, _resultsViewDefault.default).renderResults();
     renderRecipeFromHash();
 });
-renderRecipeFromHash();
+init();
 (0, _paginationViewDefault.default).renderPagination();
 (0, _paginationViewDefault.default).addNextPageHandler(()=>{
     (0, _stateDefault.default).page += 1;
@@ -592,7 +600,6 @@ renderRecipeFromHash();
 (0, _previewViewDefault.default).renderPreview();
 (0, _bookmarkViewDefault.default).addBookmarkHandler(()=>{
     (0, _previewViewDefault.default).renderPreview();
-    console.log((0, _stateDefault.default));
 });
 
 },{"core-js/modules/web.immediate.js":"49tUX","./model/recipeModel":"2p37Q","./model/searchModel":"8QdUP","./view/recipeView":"7Olh7","./model/state":"5IWav","./view/resultsView":"46Nfk","./view/searchView":"blwqv","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3","./view/paginationView":"9Reww","./view/bookmarkView":"pQnVj","./view/previewView":"8eAfY","./model/stateUpdater":"2wc0P"}],"49tUX":[function(require,module,exports) {
@@ -1821,6 +1828,7 @@ async function getRecipe(id) {
         const recipe = (0, _stateDefault.default).results[index];
         recipe.setFullRecipe(res.data.recipe.source_url, res.data.recipe.servings, res.data.recipe.cooking_time, res.data.recipe.ingredients);
         (0, _stateDefault.default).recipe = recipe;
+        if ((0, _stateDefault.default).bookmarked.map((rec)=>rec.id).includes(id)) recipe.setBookmark();
         return (0, _stateDefault.default).recipe;
     }
     const recipe1 = createRecipeObject(res.data.recipe);
@@ -1907,6 +1915,7 @@ class State {
     * @param {string} query
     */ set query(query) {
         this.#query = query;
+        this.#saveToLocal();
     }
     get query() {
         return this.#query;
@@ -1928,14 +1937,13 @@ class State {
     /**
     * @param {Recipe[]} bookmarked
     */ addTobookmarked(...rec) {
-        console.log(rec[0]);
         if (!rec[0]) return;
         this.#bookmarked.push(...rec);
         this.#saveToLocal();
     }
     removeFromBookmarked(rec) {
-        this.#bookmarked = this.#bookmarked.filter((b)=>b !== rec);
-        this.#saveToLocal();
+        this.#bookmarked = this.#bookmarked.filter((b)=>b.id !== rec.id);
+        this.#saveToLocal(rec);
     }
     get bookmarked() {
         return this.#bookmarked.slice(0);
@@ -1949,12 +1957,16 @@ class State {
     get resultsPerPage() {
         return this.#resultsPerPage;
     }
-     #saveToLocal() {
+     #saveToLocal(del) {
         const obj = JSON.parse(localStorage.getItem("recipes"));
-        console.log(obj);
+        const idSet = new Set();
+        if (obj?.bookmarks) obj.bookmarks.forEach((id)=>idSet.add(id));
+        this.#bookmarked.forEach((rec)=>idSet.add(rec.id));
         localStorage.setItem("recipes", JSON.stringify({
-            bookmarks: this.bookmarked.filter((rec)=>!obj?.bookmarks.includes(rec.id)).map((v)=>v.id),
-            query: this.query
+            bookmarks: [
+                ...idSet.values()
+            ].filter((id)=>id !== del?.id),
+            query: this.query ? this.query : obj.query
         }));
     }
 }
@@ -2754,6 +2766,7 @@ async function updateStateFromLocal() {
     const obj = JSON.parse(storage);
     if (!obj?.bookmarks) return;
     await Promise.all(obj.bookmarks.map(async (id)=>(0, _stateDefault.default).addTobookmarked(await (0, _recipeModel.getRecipe)(id))));
+    (0, _stateDefault.default).bookmarked.forEach((rec)=>rec.setBookmark());
     (0, _stateDefault.default).query = obj.query;
 }
 exports.default = updateStateFromLocal;

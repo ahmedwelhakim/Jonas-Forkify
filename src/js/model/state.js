@@ -50,6 +50,8 @@ class State {
     */
 
    addTobookmarked(...rec) {
+      console.log(rec[0]);
+      if (!rec[0]) return;
       this.#bookmarked.push(...rec);
       this.#saveToLocal();
    }
@@ -76,11 +78,17 @@ class State {
    }
 
    #saveToLocal() {
-      if (this.bookmarked.length > 0)
-         localStorage.setItem(
-            'recipes',
-            JSON.stringify({ bookmarks: this.bookmarked.map(v => v.id), query: this.query })
-         );
+      const obj = JSON.parse(localStorage.getItem('recipes'));
+      console.log(obj);
+      localStorage.setItem(
+         'recipes',
+         JSON.stringify({
+            bookmarks: this.bookmarked
+               .filter(rec => !obj?.bookmarks.includes(rec.id))
+               .map(v => v.id),
+            query: this.query,
+         })
+      );
    }
 }
 export default new State();

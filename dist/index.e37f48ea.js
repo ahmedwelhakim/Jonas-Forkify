@@ -562,7 +562,7 @@ async function renderRecipeFromHash() {
         (0, _recipeViewDefault.default).renderError(err.message);
     }
 }
-//updateStateFromLocal();
+(0, _stateUpdaterDefault.default)();
 (0, _recipeViewDefault.default).addServingHandler(()=>(0, _stateDefault.default).recipe.increaseServings(), ()=>(0, _stateDefault.default).recipe.decreaseServings());
 (0, _recipeViewDefault.default).addBookmarkHandler(()=>(0, _stateDefault.default).recipe.toggleBookmark());
 (0, _searchViewDefault.default).addSearchHandler(async ()=>{
@@ -576,7 +576,6 @@ async function renderRecipeFromHash() {
 });
 window.addEventListener("hashchange", async ()=>{
     // to update the selected recipe in recipe result
-    console.log((0, _stateDefault.default));
     (0, _resultsViewDefault.default).renderResults();
     renderRecipeFromHash();
 });
@@ -593,6 +592,7 @@ renderRecipeFromHash();
 (0, _previewViewDefault.default).renderPreview();
 (0, _bookmarkViewDefault.default).addBookmarkHandler(()=>{
     (0, _previewViewDefault.default).renderPreview();
+    console.log((0, _stateDefault.default));
 });
 
 },{"core-js/modules/web.immediate.js":"49tUX","./model/recipeModel":"2p37Q","./model/searchModel":"8QdUP","./view/recipeView":"7Olh7","./model/state":"5IWav","./view/resultsView":"46Nfk","./view/searchView":"blwqv","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3","./view/paginationView":"9Reww","./view/bookmarkView":"pQnVj","./view/previewView":"8eAfY","./model/stateUpdater":"2wc0P"}],"49tUX":[function(require,module,exports) {
@@ -1928,6 +1928,8 @@ class State {
     /**
     * @param {Recipe[]} bookmarked
     */ addTobookmarked(...rec) {
+        console.log(rec[0]);
+        if (!rec[0]) return;
         this.#bookmarked.push(...rec);
         this.#saveToLocal();
     }
@@ -1948,8 +1950,10 @@ class State {
         return this.#resultsPerPage;
     }
      #saveToLocal() {
-        if (this.bookmarked.length > 0) localStorage.setItem("recipes", JSON.stringify({
-            bookmarks: this.bookmarked.map((v)=>v.id),
+        const obj = JSON.parse(localStorage.getItem("recipes"));
+        console.log(obj);
+        localStorage.setItem("recipes", JSON.stringify({
+            bookmarks: this.bookmarked.filter((rec)=>!obj?.bookmarks.includes(rec.id)).map((v)=>v.id),
             query: this.query
         }));
     }
@@ -2748,7 +2752,8 @@ async function updateStateFromLocal() {
     const storage = localStorage.getItem("recipes");
     if (!storage) return;
     const obj = JSON.parse(storage);
-    await Promise.all(obj.bookmarks.map((id)=>(0, _stateDefault.default).addTobookmarked((0, _recipeModel.getRecipe)(id))));
+    if (!obj?.bookmarks) return;
+    await Promise.all(obj.bookmarks.map(async (id)=>(0, _stateDefault.default).addTobookmarked(await (0, _recipeModel.getRecipe)(id))));
     (0, _stateDefault.default).query = obj.query;
 }
 exports.default = updateStateFromLocal;

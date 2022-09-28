@@ -20,7 +20,7 @@ async function renderRecipeFromHash() {
       recipeView.renderError(err.message);
    }
 }
-//updateStateFromLocal();
+updateStateFromLocal();
 recipeView.addServingHandler(
    () => state.recipe.increaseServings(),
    () => state.recipe.decreaseServings()
@@ -37,7 +37,6 @@ searchView.addSearchHandler(async () => {
 });
 window.addEventListener('hashchange', async () => {
    // to update the selected recipe in recipe result
-   console.log(state);
    resultsView.renderResults();
    renderRecipeFromHash();
 });
@@ -55,4 +54,5 @@ paginationView.addPrevPageHandler(() => {
 previewView.renderPreview();
 bookmarkView.addBookmarkHandler(() => {
    previewView.renderPreview();
+   console.log(state);
 });

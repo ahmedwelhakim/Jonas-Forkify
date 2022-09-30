@@ -22,7 +22,7 @@ class AddRecipeView extends View {
 
    addUploadHandler(callbackfn) {
       super.addEventHandler('submit', () => {
-         const dataEntries = [...new FormData(this)];
+         const dataEntries = [...new FormData(parentEl)];
          callbackfn(Object.fromEntries(dataEntries));
       });
    }

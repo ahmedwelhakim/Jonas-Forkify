@@ -1,5 +1,5 @@
-import { API_URL } from '../config';
-import { fetchDataAsJSON } from './helper';
+import { API_URL, KEY } from '../config';
+import { fetchDataAsJSON, uploadDataAsJSON } from './helper';
 import state from './state';
 
 export class Recipe {
@@ -148,4 +148,34 @@ export async function getRecipe(id) {
    if (state.bookmarked.map(rec => rec.id).includes(id)) recipe.setBookmark();
    state.recipe = recipe;
    return state.recipe;
+}
+
+export async function uploadRecipe(recipe) {
+   state.recipe = recipe;
+
+   const ingredients = Object.entries(recipe)
+      .filter(entry => entry[0].startsWith('ingredient') && entry[1] !== '')
+      .map(ing => {
+         const ingArr = ing[1].split(',').map(el => el.trim());
+         // const ingArr = ing[1].replaceAll(' ', '').split(',');
+         if (ingArr.length !== 3)
+            throw new Error('Wrong ingredient fromat! Please use the correct format :)');
+
+         const [quantity, unit, description] = ingArr;
+
+         return { quantity: quantity ? +quantity : null, unit, description };
+      });
+
+   const recipeObj = {
+      title: recipe.title,
+      source_url: recipe.sourceUrl,
+      image_url: recipe.image,
+      publisher: recipe.publisher,
+      cooking_time: +recipe.cookingTime,
+      servings: +recipe.servings,
+      ingredients,
+   };
+   const data = await uploadDataAsJSON(`${API_URL}?key=${KEY}`, recipeObj);
+   state.recipe = createRecipeObject(data.data.recipe);
+   state.addTobookmarked(state.recipe);
 }

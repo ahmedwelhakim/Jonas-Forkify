@@ -1,9 +1,10 @@
 import 'core-js/stable';
 
-import { getRecipe } from './model/recipeModel';
+import { getRecipe, uploadRecipe } from './model/recipeModel';
 import searchRecipes from './model/searchModel';
 import state from './model/state';
 import updateStateFromLocal from './model/stateUpdater';
+import addRecipeView from './view/addRecipeView';
 import bookmarkView from './view/bookmarkView';
 import paginationView from './view/paginationView';
 import previewView from './view/previewView';
@@ -62,4 +63,9 @@ paginationView.addPrevPageHandler(() => {
 previewView.renderPreview();
 bookmarkView.addBookmarkHandler(() => {
    previewView.renderPreview();
+});
+
+addRecipeView.addUploadHandler(async rec => {
+   await uploadRecipe(rec);
+   recipeView.render();
 });
